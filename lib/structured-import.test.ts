@@ -1,7 +1,13 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseStructuredImport } from "./structured-import";
+import { parseStructuredImport, STRUCTURED_IMPORT_PROMPT } from "./structured-import";
 
 describe("parseStructuredImport", () => {
+  it("keeps the copyable prompt file synchronized with the app", () => {
+    const promptFile = readFileSync(new URL("../prompts/error-analysis.txt", import.meta.url), "utf8").trim();
+    expect(promptFile).toBe(STRUCTURED_IMPORT_PROMPT);
+  });
+
   it("parses long labeled text and multiline fields", () => {
     const result = parseStructuredImport(`
 SECTION: 7

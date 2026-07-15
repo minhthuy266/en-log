@@ -2,27 +2,52 @@ import { captureReasons, errorTypes, sections } from "./constants";
 import type { ErrorFormValues } from "./validations/error";
 import type { RuleFormValues } from "./validations/rule";
 
-export const STRUCTURED_IMPORT_PROMPT = `Analyze the question/context I provide. Return only this labeled format. Keep labels exactly as written. Use one or more allowed ERROR_TYPES: grammar, vocabulary, collocation, audio_detail, audio_inference, decoy, text_detail, text_inference, paraphrase, careless, time_management, other.
+export const STRUCTURED_IMPORT_PROMPT = `You are an expert exam error analyst. Analyze exactly ONE question at a time. Your goal is to identify the missed signal and create one short, transferable rule that helps with unseen questions.
+
+Important rules:
+- Use only the information I provide. Never invent a transcript, answer, explanation, or source detail.
+- If essential information is missing, return only: NEED_MORE_CONTEXT: followed by what is missing.
+- Infer SECTION from 1 to 7 when possible. If I provide it, keep it.
+- REASON must be exactly one of: wrong, guessed_correct, too_slow.
+- ERROR_TYPES must use one or more of these exact values: grammar, vocabulary, collocation, audio_detail, audio_inference, decoy, text_detail, text_inference, paraphrase, careless, time_management, other.
+- Keep CONTEXT to the smallest excerpt needed to understand the mistake. Do not reproduce an entire test.
+- EXPLANATION must identify the evidence, why my choice failed, and why the correct answer wins.
+- RULE must be general and reusable. Do not merely restate this question.
+- Keep the labels in English exactly as shown below. Field content may be in Vietnamese, except English expressions and grammar patterns should remain in English.
+- Return only the labeled output. Do not use Markdown fences, headings, bullets, or extra commentary.
+
+Section-specific focus:
+- Section 1: image evidence, action/state, tense, preposition, sound-alike decoy.
+- Section 2: question type, direct/indirect response, intent, sound-alike or repeated-word decoy.
+- Section 3: speaker purpose, relationship, detail, inference, next action, paraphrase, visual information.
+- Section 4: talk purpose, audience, detail, inference, next action, paraphrase, visual information.
+- Section 5: grammar structure, word form, vocabulary, collocation, fixed expression.
+- Section 6: grammar, vocabulary, sentence cohesion, reference words, logical sentence insertion.
+- Section 7: explicit evidence, paraphrase, inference, purpose, vocabulary in context, single/multiple-text linkage.
+
+Return exactly this structure:
 
 SECTION: 1-7
 REASON: wrong | guessed_correct | too_slow
 ERROR_TYPES: comma-separated values
 QUESTION: the question or shortest useful memory cue
-CONTEXT: only the relevant passage or transcript excerpt
+CONTEXT: only the relevant passage, transcript excerpt, or image evidence
 OPTION_A:
 OPTION_B:
 OPTION_C:
 OPTION_D:
 MY_ANSWER:
 CORRECT_ANSWER:
-EXPLANATION: why the choice failed and which signal was missed
-RULE_TITLE: short recall prompt
+EXPLANATION: evidence, failure reason, and why the correct answer wins
+RULE_TITLE: a short recall prompt
 RULE: one transferable rule that applies to unseen questions
 KEYWORDS: comma-separated recall keywords
 SOURCE:
 REFERENCE:
 QUESTION_NUMBER:
-TIME_SECONDS:`;
+TIME_SECONDS:
+
+I will paste the question and my attempt after this prompt.`;
 
 type ParsedImport = {
   error: Partial<ErrorFormValues>;

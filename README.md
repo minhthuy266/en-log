@@ -21,3 +21,7 @@ npm run build
 ## Product boundary
 
 This is an error-analysis and active-recall system, not a content warehouse. Store only enough source context to reconstruct a useful miss. Structured text is parsed locally; the app does not call an AI service or send import text anywhere.
+
+## Copyable analysis prompt
+
+Copy the complete Section 1-7 prompt from `prompts/error-analysis.txt`, append one question and your attempt, then paste the assistant's labeled output into Add Error.
