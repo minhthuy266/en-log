@@ -16,7 +16,11 @@ const items = [
 
 export function AppNavigation({ email }: { email: string }) {
   const pathname = usePathname();
-  const active = (href: string) => pathname === href || (href !== "/review" && pathname.startsWith(href));
+  const active = (href: string) => {
+    if (href === "/errors/new") return pathname === "/errors/new";
+    if (href === "/errors") return pathname === "/errors" || (pathname.startsWith("/errors/") && pathname !== "/errors/new");
+    return pathname === href || (href !== "/review" && pathname.startsWith(`${href}/`));
+  };
   return <>
     <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-card md:flex md:flex-col">
       <div className="border-b p-5"><p className="font-semibold text-primary">Signal Log</p><p className="mt-1 truncate text-xs text-muted-foreground">{email}</p></div>
