@@ -1,0 +1,57 @@
+Paste this after the analysis prompt. Replace the text inside [brackets]. You may delete fields that are not available.
+
+QUICK INPUT — use this for capture in under one minute
+
+SECTION: [1-7]
+REASON: [wrong | guessed_correct | too_slow]
+QUESTION: [paste the question or write a short memory cue]
+CONTEXT: [relevant transcript, passage excerpt, or image evidence]
+OPTIONS: A. [...] | B. [...] | C. [...] | D. [...]
+MY_ANSWER: [...]
+CORRECT_ANSWER: [...]
+TIME_SECONDS: [...]
+
+FULL INPUT — use this when source details matter
+
+SECTION: [1-7]
+REASON: [wrong | guessed_correct | too_slow]
+
+QUESTION:
+[Paste one question only]
+
+CONTEXT:
+[Paste only the transcript, passage excerpt, or image evidence needed to answer]
+
+OPTIONS:
+A. [...]
+B. [...]
+C. [...]
+D. [...]
+
+MY_ANSWER: [...]
+CORRECT_ANSWER: [...]
+TIME_SECONDS: [...]
+SOURCE: [...]
+REFERENCE: [book/page/set]
+QUESTION_NUMBER: [...]
+
+SECTION NOTES
+
+- Section 1: attach the image and include all four spoken answer choices. If the assistant cannot inspect the image, describe only visible evidence.
+- Section 2: include the spoken question/statement and all three responses. Leave OPTION_D empty.
+- Section 3: include the relevant conversation excerpt, question, choices, and any referenced visual information.
+- Section 4: include the relevant talk excerpt, question, choices, and any referenced visual information.
+- Section 5: include the complete sentence and all four choices. CONTEXT can be empty.
+- Section 6: include the sentence plus enough surrounding passage to resolve grammar or cohesion.
+- Section 7: include only the paragraph, message, or linked-text excerpts needed as evidence; do not paste an entire test unless essential.
+
+RULES FOR GOOD INPUT
+
+- Send exactly one question per analysis.
+- Do not omit the correct answer when it is available.
+- Preserve the original wording of questions and choices.
+- For audio questions, provide a transcript or attach audio the assistant can actually access.
+- For image questions, attach the image or give objective visible evidence.
+- If you guessed correctly, use REASON: guessed_correct.
+- If the main problem was speed, use REASON: too_slow.
+- If you answered incorrectly, use REASON: wrong.

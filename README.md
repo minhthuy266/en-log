@@ -25,3 +25,5 @@ This is an error-analysis and active-recall system, not a content warehouse. Sto
 ## Copyable analysis prompt
 
 Copy the complete Section 1-7 prompt from `prompts/error-analysis.txt`, append one question and your attempt, then paste the assistant's labeled output into Add Error.
+
+Use `prompts/question-input-template.txt` as the copyable template for the question and attempt you send after that prompt.
