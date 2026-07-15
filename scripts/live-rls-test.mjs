@@ -58,13 +58,13 @@ try {
   const mockResult = await user1.from("mock_tests").insert({
     name: "Codex RLS probe",
     taken_on: "2026-07-15",
-    listening_score: 455,
+    listening_score: 450,
     reading_score: 445,
     notes: "temporary",
   }).select().single();
   if (mockResult.error) throw mockResult.error;
   created.mock1 = mockResult.data.id;
-  assert(mockResult.data.total_score === 900, "mock test insert and generated total work");
+  assert(mockResult.data.total_score === 895, "benchmark insert and generated total work");
 
   const [rule1Result, rule2Result] = await Promise.all([
     user1.from("rules").insert({ title: "User 1 probe", rule_text: "Temporary rule one", keywords: ["probe"] }).select().single(),
@@ -78,7 +78,7 @@ try {
 
   const questionResult = await user1.from("questions").insert({
     mock_test_id: created.mock1,
-    toeic_part: "part_7",
+    section: "section_7",
     capture_reason: "wrong",
     error_types: ["paraphrase", "distractor"],
     question_text: "Temporary RLS probe question",
@@ -98,7 +98,7 @@ try {
   ]);
   assert(!foreignRuleRead.error && foreignRuleRead.data.length === 0, "user 1 cannot read user 2 rule");
   assert(!foreignQuestionRead.error && foreignQuestionRead.data.length === 0, "user 2 cannot read user 1 question");
-  assert(!foreignMockRead.error && foreignMockRead.data.length === 0, "user 2 cannot read user 1 mock test");
+  assert(!foreignMockRead.error && foreignMockRead.data.length === 0, "user 2 cannot read user 1 benchmark");
 
   const foreignLink = await user1.from("question_rules").insert({ question_id: created.question1, rule_id: created.rule2 });
   assert(Boolean(foreignLink.error), "junction RLS rejects a cross-user question-rule link");

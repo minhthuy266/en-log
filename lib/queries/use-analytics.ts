@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { errorTypeLabels, partLabels } from "@/lib/constants";
+import { errorTypeLabels, sectionLabels } from "@/lib/constants";
 import { queryKeys } from "@/lib/queries/query-keys";
 import { todayAsCalendarDate } from "@/lib/review-scheduler";
 import { createClient } from "@/lib/supabase/client";
@@ -15,10 +15,9 @@ export type AnalyticsMetrics = {
   dueRules: number;
   repeatedRules: number;
   latestScore: number | null;
-  gapTo900: number | null;
   errorsLast7Days: number;
   errorsPrevious7Days: number;
-  byPart: CountMetric[];
+  bySection: CountMetric[];
   byErrorType: CountMetric[];
   topRules: RuleMetric[];
   mockTests: MockTest[];
@@ -54,7 +53,7 @@ export function useAnalytics() {
     const inLast7 = questions.filter((q) => new Date(`${q.occurred_on}T00:00:00`) >= sevenDaysAgo);
     const inPrevious7 = questions.filter((q) => { const date = new Date(`${q.occurred_on}T00:00:00`); return date >= fourteenDaysAgo && date < sevenDaysAgo; });
 
-    const byPart = Object.entries(partLabels).map(([key, label]) => ({ key, label, count: questions.filter((q) => q.toeic_part === key).length })).filter((item) => item.count);
+    const bySection = Object.entries(sectionLabels).map(([key, label]) => ({ key, label, count: questions.filter((q) => q.section === key).length })).filter((item) => item.count);
     const byErrorType = Object.entries(errorTypeLabels).map(([key, label]) => ({ key, label, count: questions.filter((q) => q.error_types.includes(key as Question["error_types"][number])).length })).filter((item) => item.count).sort((a, b) => b.count - a.count);
     const ruleMetrics = rules.map((rule) => {
       const questionIds = new Set(links.filter((link) => link.rule_id === rule.id).map((link) => link.question_id));
@@ -72,7 +71,7 @@ export function useAnalytics() {
     const focusNext: string[] = [];
     if (topRules[0]?.repeatedAfterReview) focusNext.push(`Re-drill “${topRules[0].title}” with unseen questions; it repeated after review.`);
     if (byErrorType[0]) focusNext.push(`${byErrorType[0].label} is your most logged error type (${byErrorType[0].count}).`);
-    if (byPart.sort((a, b) => b.count - a.count)[0]) { const part = [...byPart].sort((a, b) => b.count - a.count)[0]; focusNext.push(`${part.label} has the most logged friction (${part.count}); schedule a focused timed set.`); }
+    if (bySection.sort((a, b) => b.count - a.count)[0]) { const section = [...bySection].sort((a, b) => b.count - a.count)[0]; focusNext.push(`${section.label} has the most logged friction (${section.count}); schedule a focused timed set.`); }
     if (!focusNext.length && questions.length === 0) focusNext.push("Log your first wrong, guessed-right, or too-slow question after a timed set.");
 
     return {
@@ -80,10 +79,9 @@ export function useAnalytics() {
       dueRules,
       repeatedRules,
       latestScore: latest?.total_score ?? null,
-      gapTo900: latest ? Math.max(0, 900 - latest.total_score) : null,
       errorsLast7Days: inLast7.length,
       errorsPrevious7Days: inPrevious7.length,
-      byPart,
+      bySection,
       byErrorType,
       topRules,
       mockTests: tests,

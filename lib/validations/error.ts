@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { captureReasons, errorTypes, toeicParts } from "@/lib/constants";
+import { captureReasons, errorTypes, sections } from "@/lib/constants";
 
 const optionalText = z.string().trim().optional().transform((value) => value || null);
 const optionalPositiveInteger = z.union([z.coerce.number().int().positive(), z.literal("")]).optional().transform((value) => value === "" || value === undefined ? null : value);
 
 export const errorSchema = z.object({
-  toeic_part: z.enum(toeicParts),
+  section: z.enum(sections),
   capture_reason: z.enum(captureReasons),
   error_types: z.array(z.enum(errorTypes)).min(1, "Choose at least one error type"),
   question_text: z.string().trim().min(1, "Question or cue is required"),

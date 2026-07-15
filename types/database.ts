@@ -1,11 +1,11 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-type ToeicPart = "part_1" | "part_2" | "part_3" | "part_4" | "part_5" | "part_6" | "part_7";
+type Section = "section_1" | "section_2" | "section_3" | "section_4" | "section_5" | "section_6" | "section_7";
 type CaptureReason = "wrong" | "guessed_correct" | "too_slow";
 type ErrorType = "grammar" | "vocabulary" | "collocation" | "listening_detail" | "listening_inference" | "distractor" | "reading_detail" | "reading_inference" | "paraphrase" | "careless" | "time_management" | "other";
 
 type QuestionRow = {
-  id: string; user_id: string; mock_test_id: string | null; toeic_part: ToeicPart;
+  id: string; user_id: string; mock_test_id: string | null; section: Section;
   capture_reason: CaptureReason; error_types: ErrorType[]; question_text: string;
   context_excerpt: string | null; question_number: number | null; option_a: string | null;
   option_b: string | null; option_c: string | null; option_d: string | null;
@@ -14,7 +14,7 @@ type QuestionRow = {
   occurred_on: string; created_at: string; updated_at: string;
 };
 type QuestionInsert = {
-  id?: string; user_id?: string; mock_test_id?: string | null; toeic_part: ToeicPart;
+  id?: string; user_id?: string; mock_test_id?: string | null; section: Section;
   capture_reason: CaptureReason; error_types: ErrorType[]; question_text: string;
   context_excerpt?: string | null; question_number?: number | null; option_a?: string | null;
   option_b?: string | null; option_c?: string | null; option_d?: string | null;

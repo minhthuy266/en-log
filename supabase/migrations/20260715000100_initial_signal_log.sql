@@ -17,7 +17,7 @@ create table public.questions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   mock_test_id uuid references public.mock_tests(id) on delete set null,
-  toeic_part text not null check (toeic_part in ('part_1','part_2','part_3','part_4','part_5','part_6','part_7')),
+  section text not null check (section in ('section_1','section_2','section_3','section_4','section_5','section_6','section_7')),
   capture_reason text not null check (capture_reason in ('wrong','guessed_correct','too_slow')),
   error_types text[] not null check (
     cardinality(error_types) > 0
@@ -85,7 +85,7 @@ create table public.reviews (
 );
 
 create index questions_user_created_idx on public.questions(user_id, created_at desc);
-create index questions_user_part_idx on public.questions(user_id, toeic_part);
+create index questions_user_section_idx on public.questions(user_id, section);
 create index questions_error_types_idx on public.questions using gin(error_types);
 create index questions_mock_test_idx on public.questions(user_id, mock_test_id);
 create index rules_user_due_idx on public.rules(user_id, next_review_on) where next_review_on is not null;

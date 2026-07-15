@@ -7,11 +7,12 @@ import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { captureReasonLabels, captureReasons, errorTypeLabels, errorTypes, partLabels, toeicParts } from "@/lib/constants";
+import { captureReasonLabels, captureReasons, errorTypeLabels, errorTypes, sectionLabels, sections } from "@/lib/constants";
 import { useCreateError, useUpdateError } from "@/lib/queries/use-errors";
 import { useMockTests } from "@/lib/queries/use-mock-tests";
 import { useRules } from "@/lib/queries/use-rules";
 import { todayAsCalendarDate } from "@/lib/review-scheduler";
+import { parseStructuredImport, STRUCTURED_IMPORT_PROMPT } from "@/lib/structured-import";
 import { errorSchema, type ErrorFormValues } from "@/lib/validations/error";
 import type { RuleFormValues } from "@/lib/validations/rule";
 import { getErrorMessage } from "@/lib/utils";
@@ -19,7 +20,7 @@ import type { QuestionWithRules } from "@/types/app";
 
 function defaults(question?: QuestionWithRules): ErrorFormValues {
   return {
-    toeic_part: question?.toeic_part ?? "part_5",
+    section: question?.section ?? "section_5",
     capture_reason: question?.capture_reason ?? "wrong",
     error_types: question?.error_types ?? ["grammar"],
     question_text: question?.question_text ?? "",
@@ -39,13 +40,34 @@ export function ErrorForm({ question }: { question?: QuestionWithRules }) {
   const [ruleSearch, setRuleSearch] = useState(""); const [showRule, setShowRule] = useState(false);
   const [newRule, setNewRule] = useState<RuleFormValues>({ title: "", rule_text: "", keywords: "" });
   const [formError, setFormError] = useState<string | null>(null); const [saved, setSaved] = useState(false); const saveAnother = useRef(false);
+  const [importText, setImportText] = useState(""); const [importMessage, setImportMessage] = useState<string | null>(null);
   const { register, handleSubmit, watch, setValue, reset, setError, formState: { errors } } = useForm<ErrorFormValues>({ defaultValues: defaults(question) });
-  const selectedTypes = watch("error_types"); const selectedPart = watch("toeic_part"); const selectedReason = watch("capture_reason");
+  const selectedTypes = watch("error_types"); const selectedSection = watch("section"); const selectedReason = watch("capture_reason");
   const filteredRules = useMemo(() => (rulesQuery.data ?? []).filter((rule) => [rule.title, rule.rule_text, ...rule.keywords].join(" ").toLowerCase().includes(ruleSearch.toLowerCase())).slice(0, 12), [rulesQuery.data, ruleSearch]);
   const pending = create.isPending || update.isPending;
 
   function toggleType(type: (typeof errorTypes)[number]) { const current = selectedTypes ?? []; setValue("error_types", current.includes(type) ? current.filter((item) => item !== type) : [...current, type], { shouldValidate: true }); }
   function toggleRule(id: string) { setSelectedRuleIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
+
+  function applyStructuredText() {
+    setImportMessage(null);
+    try {
+      const parsed = parseStructuredImport(importText);
+      reset({ ...watch(), ...parsed.error });
+      if (parsed.rule) { setNewRule(parsed.rule); setShowRule(true); }
+      setImportMessage("Fields filled. Review them before saving.");
+    } catch (cause) { setImportMessage(getErrorMessage(cause)); }
+  }
+
+  async function copyPrompt() {
+    try {
+      await navigator.clipboard.writeText(STRUCTURED_IMPORT_PROMPT);
+      setImportMessage("Analysis prompt copied.");
+    } catch {
+      setImportText(STRUCTURED_IMPORT_PROMPT);
+      setImportMessage("Clipboard access failed, so the prompt was placed in the text box for manual copying.");
+    }
+  }
 
   async function submit(values: ErrorFormValues) {
     setFormError(null); setSaved(false);
@@ -61,9 +83,10 @@ export function ErrorForm({ question }: { question?: QuestionWithRules }) {
   }
 
   return <form className="grid gap-4" onSubmit={handleSubmit(submit)}>
+    {!question && <details className="rounded-xl border border-primary/20 bg-secondary/50 p-4 md:p-5"><summary className="cursor-pointer font-semibold">Paste structured text</summary><div className="mt-4 grid gap-3"><p className="text-sm text-muted-foreground">Copy the prompt, use it with any external assistant, then paste the labeled output here. Parsing happens only in this browser.</p><div><Button onClick={copyPrompt} size="sm" type="button" variant="secondary">Copy analysis prompt</Button></div><Textarea className="min-h-40" placeholder="SECTION: 5&#10;REASON: wrong&#10;ERROR_TYPES: grammar, collocation&#10;QUESTION: ...&#10;RULE: ..." value={importText} onChange={(event) => setImportText(event.target.value)} /><div className="flex items-center gap-3"><Button disabled={!importText.trim()} onClick={applyStructuredText} type="button">Fill form</Button>{importMessage && <p className="text-sm text-muted-foreground">{importMessage}</p>}</div></div></details>}
     <section className="grid gap-5 rounded-xl border bg-card p-4 md:p-5">
       <div><h2 className="font-semibold">Quick capture</h2><p className="mt-1 text-sm text-muted-foreground">Capture the signal, not the entire test.</p></div>
-      <fieldset className="grid gap-2"><legend className="mb-2 text-sm font-medium">TOEIC part</legend><div className="grid grid-cols-4 gap-2 sm:grid-cols-7">{toeicParts.map((part) => <button className={`h-10 rounded-md border text-sm font-medium ${selectedPart === part ? "border-primary bg-secondary text-primary" : "bg-white"}`} key={part} onClick={() => setValue("toeic_part", part)} type="button">{partLabels[part].replace("Part ", "P")}</button>)}</div></fieldset>
+      <fieldset className="grid gap-2"><legend className="mb-2 text-sm font-medium">Section</legend><div className="grid grid-cols-4 gap-2 sm:grid-cols-7">{sections.map((section) => <button className={`h-10 rounded-md border text-sm font-medium ${selectedSection === section ? "border-primary bg-secondary text-primary" : "bg-white"}`} key={section} onClick={() => setValue("section", section)} type="button">{sectionLabels[section].replace("Section ", "S")}</button>)}</div></fieldset>
       <fieldset className="grid gap-2"><legend className="mb-2 text-sm font-medium">Why log it?</legend><div className="grid grid-cols-3 gap-2">{captureReasons.map((reason) => <button className={`min-h-10 rounded-md border px-2 text-xs font-medium sm:text-sm ${selectedReason === reason ? "border-primary bg-secondary text-primary" : "bg-white"}`} key={reason} onClick={() => setValue("capture_reason", reason)} type="button">{captureReasonLabels[reason]}</button>)}</div></fieldset>
       <fieldset><legend className="mb-2 text-sm font-medium">Error type <span className="font-normal text-muted-foreground">(one or more)</span></legend><div className="flex flex-wrap gap-2">{errorTypes.map((type) => <button className={`rounded-full border px-3 py-1.5 text-xs font-medium ${selectedTypes?.includes(type) ? "border-primary bg-secondary text-primary" : "bg-white"}`} key={type} onClick={() => toggleType(type)} type="button">{errorTypeLabels[type]}</button>)}</div><FieldError message={errors.error_types?.message} /></fieldset>
       <label className="grid gap-2"><span className="text-sm font-medium">Question or memory cue</span><Textarea className="min-h-24" placeholder="Paste the question, or write the smallest cue needed to reconstruct the mistake." {...register("question_text")} /><FieldError message={errors.question_text?.message} /></label>
@@ -77,8 +100,8 @@ export function ErrorForm({ question }: { question?: QuestionWithRules }) {
     </section>
 
     <details className="rounded-xl border bg-card p-4 md:p-5" open={Boolean(question)}><summary className="cursor-pointer font-semibold">Context and details <span className="font-normal text-muted-foreground">(optional)</span></summary><div className="mt-5 grid gap-4">
-      <div className="grid gap-4 sm:grid-cols-2"><label className="grid gap-2"><span className="text-sm font-medium">Mock test</span><Select {...register("mock_test_id")}><option value="">None</option>{testsQuery.data?.map((test) => <option key={test.id} value={test.id}>{test.name} · {test.taken_on}</option>)}</Select></label><label className="grid gap-2"><span className="text-sm font-medium">Date</span><Input type="date" {...register("occurred_on")} /></label></div>
-      <div className="grid gap-4 sm:grid-cols-3"><label className="grid gap-2"><span className="text-sm font-medium">Source</span><Input placeholder="ETS 2025 Test 3" {...register("source_name")} /></label><label className="grid gap-2"><span className="text-sm font-medium">Reference</span><Input placeholder="Book/page/set" {...register("source_reference")} /></label><label className="grid gap-2"><span className="text-sm font-medium">Question #</span><Input inputMode="numeric" {...register("question_number")} /></label></div>
+      <div className="grid gap-4 sm:grid-cols-2"><label className="grid gap-2"><span className="text-sm font-medium">Benchmark run</span><Select {...register("mock_test_id")}><option value="">None</option>{testsQuery.data?.map((test) => <option key={test.id} value={test.id}>{test.name} · {test.taken_on}</option>)}</Select></label><label className="grid gap-2"><span className="text-sm font-medium">Date</span><Input type="date" {...register("occurred_on")} /></label></div>
+      <div className="grid gap-4 sm:grid-cols-3"><label className="grid gap-2"><span className="text-sm font-medium">Source</span><Input placeholder="Workbook · Set 3" {...register("source_name")} /></label><label className="grid gap-2"><span className="text-sm font-medium">Reference</span><Input placeholder="Book/page/set" {...register("source_reference")} /></label><label className="grid gap-2"><span className="text-sm font-medium">Question #</span><Input inputMode="numeric" {...register("question_number")} /></label></div>
       <label className="grid gap-2"><span className="text-sm font-medium">Relevant context excerpt</span><Textarea placeholder="Only the passage or transcript fragment needed to understand the error." {...register("context_excerpt")} /></label>
       <div className="grid gap-3 sm:grid-cols-2">{(["a", "b", "c", "d"] as const).map((letter) => <label className="grid gap-1" key={letter}><span className="text-xs text-muted-foreground">Option {letter.toUpperCase()}</span><Input {...register(`option_${letter}`)} /></label>)}</div>
       <div className="grid gap-4 sm:grid-cols-2"><label className="grid gap-2"><span className="text-sm font-medium">My answer</span><Input {...register("my_answer")} /></label><label className="grid gap-2"><span className="text-sm font-medium">Correct answer</span><Input {...register("correct_answer")} /></label></div>

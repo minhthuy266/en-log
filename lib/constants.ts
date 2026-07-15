@@ -1,4 +1,4 @@
-export const toeicParts = ["part_1", "part_2", "part_3", "part_4", "part_5", "part_6", "part_7"] as const;
+export const sections = ["section_1", "section_2", "section_3", "section_4", "section_5", "section_6", "section_7"] as const;
 
 export const captureReasons = ["wrong", "guessed_correct", "too_slow"] as const;
 
@@ -19,14 +19,14 @@ export const errorTypes = [
 
 export const reviewOutcomes = ["remembered", "forgotten"] as const;
 
-export const partLabels: Record<(typeof toeicParts)[number], string> = {
-  part_1: "Part 1",
-  part_2: "Part 2",
-  part_3: "Part 3",
-  part_4: "Part 4",
-  part_5: "Part 5",
-  part_6: "Part 6",
-  part_7: "Part 7",
+export const sectionLabels: Record<(typeof sections)[number], string> = {
+  section_1: "Section 1",
+  section_2: "Section 2",
+  section_3: "Section 3",
+  section_4: "Section 4",
+  section_5: "Section 5",
+  section_6: "Section 6",
+  section_7: "Section 7",
 };
 
 export const captureReasonLabels: Record<(typeof captureReasons)[number], string> = {
@@ -39,11 +39,11 @@ export const errorTypeLabels: Record<(typeof errorTypes)[number], string> = {
   grammar: "Grammar",
   vocabulary: "Vocabulary",
   collocation: "Collocation",
-  listening_detail: "Listening detail",
-  listening_inference: "Listening inference",
-  distractor: "Distractor",
-  reading_detail: "Reading detail",
-  reading_inference: "Reading inference",
+  listening_detail: "Audio detail",
+  listening_inference: "Audio inference",
+  distractor: "Decoy",
+  reading_detail: "Text detail",
+  reading_inference: "Text inference",
   paraphrase: "Paraphrase",
   careless: "Careless",
   time_management: "Time management",
